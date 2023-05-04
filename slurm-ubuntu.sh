@@ -34,33 +34,33 @@ else
 fi
 
 export MUNGEUSER=966
-sudo groupadd -g $MUNGEUSER munge
-sudo useradd  -m -c "MUNGE Uid 'N' Gid Emporium" -d /var/lib/munge -u $MUNGEUSER -g munge  -s /sbin/nologin munge
+groupadd -g $MUNGEUSER munge
+useradd  -m -c "MUNGE Uid 'N' Gid Emporium" -d /var/lib/munge -u $MUNGEUSER -g munge  -s /sbin/nologin munge
 export SLURMUSER=967
-sudo groupadd -g $SLURMUSER slurm
-sudo useradd  -m -c "SLURM workload manager" -d /var/lib/slurm -u $SLURMUSER -g slurm  -s /bin/bash slurm
+groupadd -g $SLURMUSER slurm
+useradd  -m -c "SLURM workload manager" -d /var/lib/slurm -u $SLURMUSER -g slurm  -s /bin/bash slurm
 
 # install munge
-sudo DEBIAN_FRONTEND=noninteractive apt install munge libmunge-dev libmunge2 rng-tools -y
-sudo rngd -r /dev/urandom
+DEBIAN_FRONTEND=noninteractive apt install munge libmunge-dev libmunge2 rng-tools -y
+rngd -r /dev/urandom
 
 if [ "$VERSION_ID" == "22.04" ] ; then
-    sudo /usr/sbin/mungekey -f
+    /usr/sbin/mungekey -f
 else
-    sudo /usr/sbin/create-munge-key -r -f
+    /usr/sbin/create-munge-key -r -f
 fi
 
-sudo sh -c  "dd if=/dev/urandom bs=1 count=1024 > /etc/munge/munge.key"
-sudo chown munge: /etc/munge/munge.key
-sudo chmod 400 /etc/munge/munge.key
+sh -c  "dd if=/dev/urandom bs=1 count=1024 > /etc/munge/munge.key"
+chown munge: /etc/munge/munge.key
+chmod 400 /etc/munge/munge.key
 
-sudo systemctl enable munge
-sudo systemctl start munge
+systemctl enable munge
+systemctl start munge
 
 # prepare to build and install SLURM
-sudo DEBIAN_FRONTEND=noninteractive apt install python3 gcc openssl numactl hwloc lua5.3 man2html \
+DEBIAN_FRONTEND=noninteractive apt install python3 gcc openssl numactl hwloc lua5.3 man2html \
      make ruby ruby-dev libmunge-dev libpam0g-dev -y
-sudo /usr/bin/gem install fpm
+/usr/bin/gem install fpm
 
 mkdir slurm-tmp
 cd slurm-tmp
@@ -96,28 +96,28 @@ cd ..
 # mkdir -p /etc/slurm /etc/slurm/prolog.d /etc/slurm/epilog.d /var/spool/slurm/ctld /var/spool/slurm/d /var/log/slurm
 # chown slurm /var/spool/slurm/ctld /var/spool/slurm/d /var/log/slurm
 
-sudo mkdir /var/spool/slurm
-sudo chown slurm:slurm /var/spool/slurm
-sudo chmod 755 /var/spool/slurm
-sudo mkdir /var/spool/slurm/slurmctld
-sudo chown slurm:slurm /var/spool/slurm/slurmctld
-sudo chmod 755 /var/spool/slurm/slurmctld
-sudo mkdir /var/spool/slurm/cluster_state
-sudo chown slurm:slurm /var/spool/slurm/cluster_state
-sudo touch /var/log/slurmctld.log
-sudo chown slurm:slurm /var/log/slurmctld.log
-sudo touch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
-sudo chown slurm: /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
-# sudo touch /var/run/slurmctld.pid /var/run/slurmd.pid
-# sudo chown slurm:slurm /var/run/slurmctld.pid /var/run/slurmd.pid
-sudo mkdir -p /etc/slurm/prolog.d /etc/slurm/epilog.d 
+mkdir /var/spool/slurm
+chown slurm:slurm /var/spool/slurm
+chmod 755 /var/spool/slurm
+mkdir /var/spool/slurm/slurmctld
+chown slurm:slurm /var/spool/slurm/slurmctld
+chmod 755 /var/spool/slurm/slurmctld
+mkdir /var/spool/slurm/cluster_state
+chown slurm:slurm /var/spool/slurm/cluster_state
+touch /var/log/slurmctld.log
+chown slurm:slurm /var/log/slurmctld.log
+touch /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
+chown slurm: /var/log/slurm_jobacct.log /var/log/slurm_jobcomp.log
+# touch /var/run/slurmctld.pid /var/run/slurmd.pid
+# chown slurm:slurm /var/run/slurmctld.pid /var/run/slurmd.pid
+mkdir -p /etc/slurm/prolog.d /etc/slurm/epilog.d 
 
 # rm slurm-$VER.tar.bz2
 # cd ..
 # rmdir slurm-tmp 
 
 # get perl-Switch
-# sudo yum install cpan -y 
+# yum install cpan -y 
 
 # create the SLURM default configuration with
 # compute nodes called "NodeName=linux[1-32]"
@@ -243,11 +243,11 @@ WantedBy=multi-user.target
 EOF
 
 # on master
-sudo systemctl daemon-reload
-sudo systemctl enable slurmdbd
-sudo systemctl start slurmdbd
-sudo systemctl enable slurmctld
-sudo systemctl start slurmctld
+systemctl daemon-reload
+systemctl enable slurmdbd
+systemctl start slurmdbd
+systemctl enable slurmctld
+systemctl start slurmctld
 
 # on compute nodes
 cat  <<EOF  | sudo tee /etc/systemd/system/slurmd.service
@@ -272,46 +272,46 @@ WantedBy=multi-user.target
 EOF
 
 # on compute nodes 
-sudo systemctl daemon-reload
-sudo systemctl enable slurmd.service
-sudo systemctl start slurmd.service
+systemctl daemon-reload
+systemctl enable slurmd.service
+systemctl start slurmd.service
 
 # firewall will block connections between nodes so in case of cluster
 # with multiple nodes adapt the firewall on the compute nodes 
 #
-# sudo systemctl stop firewalld
-# sudo systemctl disable firewalld
+# systemctl stop firewalld
+# systemctl disable firewalld
 
 # on the master node
-#sudo firewall-cmd --permanent --zone=public --add-port=6817/udp
-#sudo firewall-cmd --permanent --zone=public --add-port=6817/tcp
-#sudo firewall-cmd --permanent --zone=public --add-port=6818/tcp
-#sudo firewall-cmd --permanent --zone=public --add-port=6818/tcp
-#sudo firewall-cmd --permanent --zone=public --add-port=7321/tcp
-#sudo firewall-cmd --permanent --zone=public --add-port=7321/tcp
-#sudo firewall-cmd --reload
+#firewall-cmd --permanent --zone=public --add-port=6817/udp
+#firewall-cmd --permanent --zone=public --add-port=6817/tcp
+#firewall-cmd --permanent --zone=public --add-port=6818/tcp
+#firewall-cmd --permanent --zone=public --add-port=6818/tcp
+#firewall-cmd --permanent --zone=public --add-port=7321/tcp
+#firewall-cmd --permanent --zone=public --add-port=7321/tcp
+#firewall-cmd --reload
 
 # sync clock on master and every compute node 
-#sudo yum install ntp -y
-#sudo chkconfig ntpd on
-#sudo ntpdate pool.ntp.org
-#sudo systemctl start ntpd
+#yum install ntp -y
+#chkconfig ntpd on
+#ntpdate pool.ntp.org
+#systemctl start ntpd
 
 
 echo Sleep for a few seconds for slurmd to come up ...
 sleep 2
 
 # checking 
-# sudo systemctl status slurmd.service
-# sudo journalctl -xe
+# systemctl status slurmd.service
+# journalctl -xe
 
 # if you experience an error with starting up slurmd.service
 # like "fatal: Incorrect permissions on state save loc: /var/spool"
 # then you might want to adapt with chmod 777 /var/spool
 
 # more checking 
-# sudo slurmd -Dvvv -N YOUR_HOSTNAME 
-# sudo slurmctld -D vvvvvvvv
+# slurmd -Dvvv -N YOUR_HOSTNAME 
+# slurmctld -D vvvvvvvv
 # or tracing with sudo strace slurmctld -D vvvvvvvv
 
 # echo Compute node bugs: tail /var/log/slurmd.log
@@ -353,7 +353,7 @@ srun hostname
 # check the journal 
 #    journalctl -xe
 # turn off debugging
-#    sudo scontrol setdebug 3
+#    scontrol setdebug 3
 
 # scontrol
 # scontrol: show node $HOST
